@@ -19,19 +19,15 @@ Plug 'rose-pine/neovim'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'mbbill/undotree'
 
-" Tabnine / AI Autocompletion
-Plug 'codota/tabnine-nvim', { 'do': '.dl_binaies.sh' }
-
 " LSP Support
 Plug 'neovim/nvim-lspconfig'             " Required
-Plug 'williamboman/mason.nvim',          " Optional
+Plug 'williamboman/mason.nvim'           " Optional
 Plug 'williamboman/mason-lspconfig.nvim' " Optional
 
 " Autocompletion
-Plug 'hrsh7th/cmp-nvim-lsp'
-Plug 'hrsh7th/cmp-buffer'
-Plug 'hrsh7th/cmp-path'
-Plug 'hrsh7th/nvim-cmp'
+Plug 'hrsh7th/nvim-cmp'         " Required
+Plug 'hrsh7th/cmp-nvim-lsp'     " Required
+Plug 'L3MON4D3/LuaSnip'         " Required
 
 Plug 'VonHeikemen/lsp-zero.nvim', {'branch': 'v2.x'}
 
@@ -40,9 +36,13 @@ Plug 'famiu/feline.nvim'
 Plug 'nvim-tree/nvim-web-devicons'
 Plug 'nvim-tree/nvim-web-devicons'
 
+" Tabnine autocompletion
+Plug 'codota/tabnine-nvim', { 'do': './dl_binaries.sh' }
+
 call plug#end()
 
 nnoremap <silent>	<C-f> :NERDTreeFocus<CR>
+nnoremap <silent>	<C-t> :NERDTreeToggle<CR>
 nnoremap <silent>	<A-,> <Cmd>BufferPrevious<CR>
 nnoremap <silent>   <A-.> <Cmd>BufferNext<CR>
 
@@ -60,7 +60,7 @@ nnoremap <silent>   <A-c> <Cmd>BufferClose<CR>
 nnoremap <silent>	<A-u> <Cmd>UndotreeToggle<CR>	
 
 let g:NERDTreeDirArrowExpandable="+"
-let g:NERDTreeDirArrowCollapsible="~"
+let g:NERDTreeDirArrowCollapsible="o"
 
 lua <<EOF
 	vim.cmd('colorscheme rose-pine')
@@ -73,7 +73,6 @@ lua <<EOF
 		},
 	}
 
-	-- LSP Setup
 	local lsp = require('lsp-zero').preset({})
 
 	lsp.on_attach(function(client, bufnr)
@@ -82,12 +81,26 @@ lua <<EOF
 	lsp.default_keymaps({buffer = bufnr})
 	end)
 
-	-- (Optional) Configure lua language server for neovim
-	require('lspconfig').lua_ls.setup(lsp.nvim_lua_ls())
-
 	lsp.setup()
+
+	-- You need to setup `cmp` after lsp-zero
+	local cmp = require('cmp')
+	local cmp_action = require('lsp-zero').cmp_action()
+
+	cmp.setup({
+	mapping = {
+		-- `Enter` key to confirm completion
+		['<CR>'] = cmp.mapping.confirm({select = false}),
+
+		-- Ctrl+Space to trigger completion menu
+		['<C-Space>'] = cmp.mapping.complete(),
+
+		-- Navigate between snippet placeholder
+		['<C-f>'] = cmp_action.luasnip_jump_forward(),
+		['<C-b>'] = cmp_action.luasnip_jump_backward(),
+	}
+	})
 	
-	-- Tabnine activation
 	require('tabnine').setup({
 		disable_auto_comment=true,
 		accept_keymap="<Tab>",
@@ -95,10 +108,11 @@ lua <<EOF
 		debounce_ms = 800,
 		suggestion_color = {gui = "#808080", cterm = 244},
 		exclude_filetypes = {"TelescopePrompt"},
-		log_file_path = nil, -- absolute path to Tabnine log file
+		log_file_path = "~/.config/nvim/tabnine.log",
 	})
 
 	-- Status bar
 	require('feline').setup()
 	require('feline').winbar.setup()
+	require('tabnine.status').status()
 EOF
