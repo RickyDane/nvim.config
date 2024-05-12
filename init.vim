@@ -5,6 +5,7 @@
 syntax enable
 :set termguicolors
 :set updatetime=50
+:set modifiable
 
 call plug#begin()
 
@@ -30,14 +31,15 @@ Plug 'hrsh7th/cmp-nvim-lsp'     " Required
 Plug 'L3MON4D3/LuaSnip'         " Required
 
 Plug 'VonHeikemen/lsp-zero.nvim', {'branch': 'v2.x'}
+Plug 'rust-lang/rust.vim'
 
 Plug 'famiu/feline.nvim' 
 
 Plug 'nvim-tree/nvim-web-devicons'
 Plug 'nvim-tree/nvim-web-devicons'
 
-" Tabnine autocompletion
-Plug 'codota/tabnine-nvim', { 'do': './dl_binaries.sh' }
+" Autocompletion with codeium
+Plug 'Exafunction/codeium.vim'
 
 call plug#end()
 
@@ -61,12 +63,13 @@ nnoremap <silent>	<A-u> <Cmd>UndotreeToggle<CR>
 
 let g:NERDTreeDirArrowExpandable="+"
 let g:NERDTreeDirArrowCollapsible="o"
+let g:rustfmt_autosave=1
 
 lua <<EOF
 	vim.cmd('colorscheme rose-pine')
 
 	require'nvim-treesitter.configs'.setup {
-		ensure_installed = { "javascript", "rust", "c", "lua", "vim", "vimdoc", "query" },
+		ensure_installed = { "javascript", "rust", "c", "lua", "vim", "vimdoc", "query", "python", "dart" },
 		auto_install = true,
 		highlight = {
 			enable = true,
@@ -101,18 +104,8 @@ lua <<EOF
 	}
 	})
 	
-	require('tabnine').setup({
-		disable_auto_comment=true,
-		accept_keymap="<Tab>",
-		dismiss_keymap = "<C-]>",
-		debounce_ms = 800,
-		suggestion_color = {gui = "#808080", cterm = 244},
-		exclude_filetypes = {"TelescopePrompt"},
-		log_file_path = "~/.config/nvim/tabnine.log",
-	})
 
 	-- Status bar
 	require('feline').setup()
 	require('feline').winbar.setup()
-	require('tabnine.status').status()
 EOF
